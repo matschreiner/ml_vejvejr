@@ -5,16 +5,21 @@ from torch.utils.data import DataLoader
 from dataset import Dataset
 from model import Model
 
+from model_analysis import analyze_model_performance, plot_training_loss
 
 def main(args):
-    depth = 10
+    depth = 15 #10
     model = Model(depth)
     dataset = Dataset(args.path)
     dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
 
-    trainer = pl.Trainer(max_epochs=50)
+    trainer = pl.Trainer(max_epochs=200) # 50)
     trainer.fit(model, dataloader)
     plot_losses(model)
+
+    # adding the more comprehensive analysis here
+    #print("\nAnalyzing model performance...")
+    #analyze_model_performance(model, dataset)
 
 
 def plot_losses(model):
