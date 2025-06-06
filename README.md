@@ -28,4 +28,4 @@ There are 24 profiles per station, stored with the structure shown below.
 ```
 
 The profiles look like this
-`![Profile Example](./figs/profiles_20220821_503100.png)`
+![Profile Example](./figs/profiles_20220821_503100.png)
