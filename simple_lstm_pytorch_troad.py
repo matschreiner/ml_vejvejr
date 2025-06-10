@@ -19,6 +19,8 @@ import os
 def load_and_merge_data_optimized(variables, year):
     """
     Load data from SQLite databases and merge into a single dataframe.
+    Each variable is in a different sqlite file. The function
+    merges all of them in a single dataframe.
 
     Args:
     variables: List of meteorological variables to load
@@ -77,6 +79,9 @@ train_size = int(len(data_selected) * SPLIT)
 val_size = int(len(data_selected) * (1-SPLIT)//2)
 test_size = len(data_selected) - train_size - val_size
 
+print(f"Details of the {SPLIT*100} % split")
+print(f"Training: {train_size} h ({train_size/24} days)")
+
 data_train = data_selected[:train_size]
 data_val = data_selected[train_size:train_size + val_size]
 data_test = data_selected[-test_size:]
@@ -118,8 +123,9 @@ def create_sequences(input_data, n_steps, fut_hours, out_feat_index):
 #output_feature = 'tempC'
 output_feature = 'TROAD'
 out_feat_index = numeric_cols.index(output_feature)
-fut_hours = 1
-n_steps = 168 #1 week or 24*7
+fut_hours = 1 #prediction one hour ahead
+n_steps = 168 #168 = 1 week or 24*7, this represents the hour of history used for each prediction in the LSTM
+n_steps = 24 # a day
 n_inputs = len(data_selected.columns)
 
 X_train, y_train = create_sequences(data_train_normalized, n_steps, fut_hours, out_feat_index)
@@ -223,7 +229,8 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, epochs):
 EPOCHS = 20
 train_losses, val_losses = train_model(model, train_loader, val_loader, criterion, optimizer, EPOCHS)
 print("Created LSTM model")
-sequence_length = X_train.shape[1]  # This is your sequence length
+# print the model summary
+sequence_length = X_train.shape[1]  # This is the sequence length
 from torchinfo import summary
 summary(model, input_size=(BATCH, sequence_length, input_size))
 
@@ -260,7 +267,6 @@ print(f'Test RMSE: {np.sqrt(test_loss):.3f}')
 
 
 
-
 # Load the scaler parameters from the text file
 loaded_scaler_params = {}
 with open('scaler_params.txt', 'r') as file:
@@ -276,36 +282,51 @@ inference_scaler.data_min_ = loaded_scaler_params['data_min']
 inference_scaler.data_max_ = loaded_scaler_params['data_max']
 inference_scaler.data_range_ = loaded_scaler_params['data_range']
 
-
-
 # After making predictions, we need to map the timestamps
 # Get the corresponding dates for the test set
 test_dates = df['date_time'].iloc[-len(actuals):]
 
-# Plot predictions vs actual with dates
+# Convert predictions and actuals back to original scale
+# We're only predicting TROAD (index 0), so we need to create arrays with the right shape
+def denormalize_single_feature(normalized_values, scaler, feature_index):
+    """Convert normalized values back to original scale for a single feature"""
+    # Create a dummy array with the same number of features as the original data
+    dummy_array = np.zeros((len(normalized_values), len(scaler.scale_)))
+    # Put the normalized values in the correct feature column
+    dummy_array[:, feature_index] = normalized_values
+    # Inverse transform
+    denormalized = scaler.inverse_transform(dummy_array)
+    # Return only the feature we care about
+    return denormalized[:, feature_index]
+
+# Convert back to original units
+actuals_original = denormalize_single_feature(actuals, inference_scaler, out_feat_index)
+predictions_original = denormalize_single_feature(predictions, inference_scaler, out_feat_index)
+
+# Plot predictions vs actual with dates (in original units)
 plt.figure(figsize=(12, 6))
-plt.plot(test_dates, actuals, color='red', label='Real data')
-plt.plot(test_dates, predictions, color='blue', label='Predicted data', alpha=0.6)
+plt.plot(test_dates, actuals_original, color='red', label='Real data')
+plt.plot(test_dates, predictions_original, color='blue', label='Predicted data', alpha=0.6)
 plt.title('Road Temperature Prediction')
 plt.xlabel('Date')
-plt.ylabel('Temperature')
+plt.ylabel('Temperature (°C)')  # Now showing original units
 plt.xticks(rotation=45)
 plt.grid(True, linestyle='--', alpha=0.7)
 plt.legend()
-plt.tight_layout()  # Prevents label cutoff
+plt.tight_layout()
 plt.savefig("troad_prediction.png")
 plt.show()
 
-# For the subset plot
+# For the subset plot (in original units)
 subset_size = 2000
 plt.figure(figsize=(12, 6))
-plt.plot(test_dates[-subset_size:], actuals[-subset_size:],
+plt.plot(test_dates[-subset_size:], actuals_original[-subset_size:],
          color='red', label='Real data')
-plt.plot(test_dates[-subset_size:], predictions[-subset_size:],
+plt.plot(test_dates[-subset_size:], predictions_original[-subset_size:],
          color='blue', label='Predicted data', alpha=0.6)
 plt.title('Road Temperature Prediction (Subset)')
 plt.xlabel('Date')
-plt.ylabel('Temperature')
+plt.ylabel('Temperature (°C)')  # Now showing original units
 plt.xticks(rotation=45)
 plt.grid(True, linestyle='--', alpha=0.7)
 plt.legend()
@@ -313,6 +334,42 @@ plt.tight_layout()
 plt.savefig("troad_prediction_subset.png")
 plt.show()
 
+# Update RMSE calculation to show error in original units
+test_rmse_original = np.sqrt(np.mean((actuals_original - predictions_original)**2))
+print(f'Test RMSE in original units: {test_rmse_original:.3f} °C')
+
+
+## Plot predictions vs actual with dates
+#plt.figure(figsize=(12, 6))
+#plt.plot(test_dates, actuals, color='red', label='Real data')
+#plt.plot(test_dates, predictions, color='blue', label='Predicted data', alpha=0.6)
+#plt.title('Road Temperature Prediction')
+#plt.xlabel('Date')
+#plt.ylabel('Temperature')
+#plt.xticks(rotation=45)
+#plt.grid(True, linestyle='--', alpha=0.7)
+#plt.legend()
+#plt.tight_layout()  # Prevents label cutoff
+#plt.savefig("troad_prediction.png")
+#plt.show()
+#
+## For the subset plot
+#subset_size = 2000
+#plt.figure(figsize=(12, 6))
+#plt.plot(test_dates[-subset_size:], actuals[-subset_size:],
+#         color='red', label='Real data')
+#plt.plot(test_dates[-subset_size:], predictions[-subset_size:],
+#         color='blue', label='Predicted data', alpha=0.6)
+#plt.title('Road Temperature Prediction (Subset)')
+#plt.xlabel('Date')
+#plt.ylabel('Temperature')
+#plt.xticks(rotation=45)
+#plt.grid(True, linestyle='--', alpha=0.7)
+#plt.legend()
+#plt.tight_layout()
+#plt.savefig("troad_prediction_subset.png")
+#plt.show()
+#
 ## Plot predictions vs actual
 #plt.figure(figsize=(10, 6))
 #plt.plot(actuals, color='red', label='Real data')
