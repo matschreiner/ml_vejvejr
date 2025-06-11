@@ -281,7 +281,7 @@ def main(checkpoint_path, dataset_path, n_samples=100):
     try:
         denorm_results = denormalize_predictions(results, dataset_path)
         print("\\n=== Plotting Denormalized Results ===")
-        plot_prediction_examples(denorm_results, n_examples=3)
+        plot_prediction_examples(denorm_results, n_examples=6)
     except Exception as e:
         print(f"Could not denormalize results: {e}")
     
@@ -293,7 +293,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate trained temperature profile model")
     parser.add_argument("checkpoint", type=str, help="Path to model checkpoint (.ckpt file)")
     parser.add_argument("dataset", type=str, help="Path to dataset NPZ file")
-    parser.add_argument("--n_samples", type=int, default=100, help="Number of samples to evaluate")
+    parser.add_argument("--n_samples", type=int, default=6, help="Number of samples to evaluate")
     
     args = parser.parse_args()
     

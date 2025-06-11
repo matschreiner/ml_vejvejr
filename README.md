@@ -1,6 +1,6 @@
 
 # Implement load_dataset in the dataset.Dataset
-# Run `python train_model.py {path_to_dataset}`
+# Run `python train.py {path_to_dataset}`
 
 ### Testing adding real profiles
 The data is in the path `/data/projects/glatmodel/obs/fild8/road_profiles_daily`, where
@@ -29,3 +29,23 @@ There are 24 profiles per station, stored with the structure shown below.
 
 The profiles look like this
 ![Profile Example](./figs/profiles_20220821_503100.png)
+
+See `run_plot.sh` to generate specific plots.
+
+### Using the model with the real profiles
+Run:
+`generate_data_from_profiles.pygenerate_data_from_profiles.py`
+to generate data
+Note hardcoded `road_temp_2022030*` in script and station `0-100000-0`. 
+The script will produce some plots with the data used.
+Example below:
+![Training Example](./figs/training_examples.png)
+
+Then train model using
+
+`python train.py data/road_temp_timeseries.npz`
+
+To evaluate model use the script `run_eval.sh`. Note that a checkpoint 
+from lightning_logs must be selected.
+An example prediction is below:
+![Prediction Example](./figs/model_predictions.png)

@@ -305,16 +305,16 @@ def load_timeseries_data(npz_file):
 
 if __name__ == "__main__":
     data_path = "/data/projects/glatmodel/obs/fild8/road_profiles_daily"
-
+    os.makedirs("data", exist_ok=True)
     # Create time series dataset from multiple days/months
     result = create_timeseries_dataset(
         parquet_pattern=os.path.join(data_path, 'road_temp_2022030*.parquet'),
         station_id='0-100000-0',  # Station ID
-        output_file='road_temp_timeseries.npz',
+        output_file='data/road_temp_timeseries.npz',
         max_depth=15,  # number of layers
         time_step_hours=1,  # Predict 1 hour ahead
         plot_examples=True  # Create visualization plots
     )
 
     # Load and inspect the created dataset
-    input_data, target_data = load_timeseries_data('road_temp_timeseries.npz')
+    input_data, target_data = load_timeseries_data('data/road_temp_timeseries.npz')
