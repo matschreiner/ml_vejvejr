@@ -11,7 +11,10 @@ class Dataset(torch.utils.data.Dataset):
         return len(self.input_data)
 
     def __getitem__(self, idx):
+        # include time of day
+
         return {
+            #"tod": torch.tensor ... #placeholder for later
             "input": torch.tensor(self.input_data[idx], dtype=torch.float32),
             "target": torch.tensor(self.target_data[idx], dtype=torch.float32),  # Already offset in data generation, so not using idx+1 here
         }
@@ -37,5 +40,4 @@ class Dataset(torch.utils.data.Dataset):
         target_data = data['target'] # Shape: (n_samples, n_depths) - timesteps t+1
         
         print(f"Loaded time series data - Input: {input_data.shape}, Target: {target_data.shape}")
-        
         return input_data, target_data
