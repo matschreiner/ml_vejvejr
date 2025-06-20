@@ -28,7 +28,14 @@ def load_parquet_files_timeseries(pattern, station_id, max_depth=15):
     --------
     pandas.DataFrame with columns: timestamp, depth_0, depth_1, ..., depth_n
     """
-    files = sorted(glob.glob(pattern))
+    print(f"Checking all files in {pattern}")
+    if isinstance(pattern, list):
+        files = []
+        for pat in pattern:
+            files.extend(glob.glob(pat))
+        files = sorted(files)
+    else:
+        files = sorted(glob.glob(pattern))
     if not files:
         raise ValueError(f"No files found matching pattern: {pattern}")
 
@@ -306,15 +313,27 @@ def load_timeseries_data(npz_file):
 if __name__ == "__main__":
     data_path = "/data/projects/glatmodel/obs/fild8/road_profiles_daily"
     os.makedirs("data", exist_ok=True)
+
+    YYYY=2024
+    #YYYY=[2021,2022,2023]
+    if isinstance(YYYY, list):
+        pattern = ["road_temp_" + str(year) + "*.parquet" for year in YYYY] 
+        parquet_pattern = [os.path.join(data_path, pattern)]
+        output = f'data/road_temp_training_{YYYY[0]}-{YYYY[-1]}.npz'
+
+    else:
+        output = f'data/road_temp_training_{YYYY}01.npz'
+        pattern = f'road_temp_{YYYY}01*.parquet'
     # Create time series dataset from multiple days/months
     result = create_timeseries_dataset(
-        parquet_pattern=os.path.join(data_path, 'road_temp_2022030*.parquet'),
+        parquet_pattern=os.path.join(data_path, pattern), #'road_temp_2022030*.parquet'),
         station_id='0-100000-0',  # Station ID
-        output_file='data/road_temp_timeseries.npz',
+        output_file=output,
         max_depth=15,  # number of layers
         time_step_hours=1,  # Predict 1 hour ahead
         plot_examples=True  # Create visualization plots
     )
 
     # Load and inspect the created dataset
-    input_data, target_data = load_timeseries_data('data/road_temp_timeseries.npz')
+    #input_data, target_data = load_timeseries_data('data/road_temp_timeseries.npz')
+    input_data, target_data = load_timeseries_data(output)
