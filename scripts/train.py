@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
-from dataset import Dataset
-from model import Model
+from vml.dataset import Dataset
+from vml.model import model
 
 def main(args):
     depth = 15
