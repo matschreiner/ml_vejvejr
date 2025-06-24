@@ -311,23 +311,40 @@ def load_timeseries_data(npz_file):
     return input_data, target_data
 
 if __name__ == "__main__":
-    data_path = "/data/projects/glatmodel/obs/fild8/road_profiles_daily"
-    os.makedirs("data", exist_ok=True)
+    import argparse
+    parser = argparse.ArgumentParser(description="Generate training and validation data for the model")
+    parser.add_argument("years", type=str, help="Years to process")
+    parser.add_argument("station", type=str, help="Station id")
+    parser.add_argument("data_type", type=str, help="Type of data (training or validation)",default="train")
+    parser.add_argument("out_path", type=str, help="Path to save the NPZ data file")
+    parser.add_argument("data_path", type=str, help="Path for the profiles in parquet format",default="/data/projects/glatmodel/obs/fild8/road_profiles_daily")
+    args = parser.parse_args()
+    #data_path = "/data/projects/glatmodel/obs/fild8/road_profiles_daily"
+    data_path = args.data_path
+    os.makedirs(args.data_path, exist_ok=True)
 
-    YYYY=2024
-    YYYY=[2021,2022,2023]
+    #YYYY=2024
+    #YYYY=[2021,2022,2023]
+    YYYY=args.years
+    if "," in args.years:
+        YYYY = [int(y) for y in args.years.split(",")]
+    else:
+        YYYY = int(args.years)
+   
     if isinstance(YYYY, list):
         pattern = ["road_temp_" + str(year) + "*.parquet" for year in YYYY] 
         parquet_pattern = [os.path.join(data_path, pat) for pat in pattern]
-        output = f'data/road_temp_training_{YYYY[0]}-{YYYY[-1]}.npz'
+        #output = f'data/road_temp_training_{YYYY[0]}-{YYYY[-1]}.npz'
+        output = os.path.join(args.out_path,f'road_temp_training_{YYYY[0]}-{YYYY[-1]}.npz')
 
     else:
-        output = f'data/road_temp_training_{YYYY}01.npz'
-        parquet_pattern = os.path.join(data_path, f'road_temp_{YYYY}01*.parquet')
+        parquet_pattern = os.path.join(data_path, f'road_temp_{YYYY}*.parquet')
+        output = os.path.join(args.out_path,f'road_temp_{args.data_type}_{YYYY}.npz')#f'data/road_temp_training_{YYYY}01.npz'
+        #parquet_pattern = os.path.join(data_path, f'road_temp_{YYYY}01*.parquet')
     # Create time series dataset from multiple days/months
     result = create_timeseries_dataset(
         parquet_pattern=parquet_pattern, #os.path.join(data_path, pattern), #'road_temp_2022030*.parquet'),
-        station_id='0-100000-0',  # Station ID
+        station_id=args.station,#'0-100000-0',  # Station ID
         output_file=output,
         max_depth=15,  # number of layers
         time_step_hours=1,  # Predict 1 hour ahead
