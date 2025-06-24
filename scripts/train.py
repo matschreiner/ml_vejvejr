@@ -24,8 +24,10 @@ def plot_losses(model):
         plt.xlabel("Training Steps")
         plt.ylabel("MSE Loss")
         plt.title("Time Series Prediction Loss")
+        plt.yscale("log")
         plt.legend()
         plt.grid(True)
+        plt.savefig('train_valid_losses.png', dpi=300, bbox_inches='tight')
         plt.show()
         print(f"Final train loss: {model.losses[-1]:.6f}")
         if hasattr(model, "val_losses") and model.val_losses:
