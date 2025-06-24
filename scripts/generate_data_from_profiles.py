@@ -93,7 +93,7 @@ def load_parquet_files_timeseries(pattern, station_id, max_depth=15):
 
     return combined_data
 
-def plot_training_data_example(df, max_depth=15, time_step_hours=1, n_examples=3):
+def plot_training_data_example(df, max_depth=15, time_step_hours=1, n_examples=3,data_type="train"):
     """
     Plot examples of what the model is being trained to predict.
 
@@ -139,12 +139,11 @@ def plot_training_data_example(df, max_depth=15, time_step_hours=1, n_examples=3
         axes[i].invert_yaxis()  # Deeper depths at bottom
 
     plt.tight_layout()
-    plt.savefig('training_examples.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'training_examples_{data_type}.png', dpi=300, bbox_inches='tight')
     plt.show()
 
-    print(f"Training visualization saved as 'training_examples.png'")
 
-def plot_time_series_overview(df, max_depth=15, depth_to_plot=0):
+def plot_time_series_overview(df, max_depth=15, depth_to_plot=0,data_type="train"):
     """
     Plot time series overview showing temperature evolution at one depth.
 
@@ -185,10 +184,9 @@ def plot_time_series_overview(df, max_depth=15, depth_to_plot=0):
     cbar.set_label('Temperature (°C)')
 
     plt.tight_layout()
-    plt.savefig('timeseries_overview.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'timeseries_overview_{data_type}.png', dpi=300, bbox_inches='tight')
     plt.show()
 
-    print(f"Time series overview saved as 'timeseries_overview.png'")
 
 def create_timeseries_dataset(
     parquet_pattern,
@@ -196,7 +194,8 @@ def create_timeseries_dataset(
     output_file='road_temp_timeseries.npz',
     max_depth=15,
     time_step_hours=1,
-    plot_examples=True
+    plot_examples=True,
+    data_type = "train"
 ):
     """
     Create time series dataset for temperature profile prediction.
@@ -215,6 +214,8 @@ def create_timeseries_dataset(
         Hours between consecutive predictions (1 = predict next hour)
     plot_examples : bool
         Whether to create visualization plots
+    data_type : str
+        type of data for the png file
 
     Returns:
     --------
@@ -226,8 +227,8 @@ def create_timeseries_dataset(
 
     if plot_examples:
         print("\n=== Creating Visualizations ===")
-        plot_time_series_overview(df, max_depth)
-        plot_training_data_example(df, max_depth, time_step_hours)
+        plot_time_series_overview(df, max_depth,data_type)
+        plot_training_data_example(df, max_depth, time_step_hours,data_type)
 
     depth_cols = [f'depth_{i}' for i in range(max_depth)]
     profiles = df[depth_cols].values
@@ -348,7 +349,8 @@ if __name__ == "__main__":
         output_file=output,
         max_depth=15,  # number of layers
         time_step_hours=1,  # Predict 1 hour ahead
-        plot_examples=True  # Create visualization plots
+        plot_examples=True,  # Create visualization plots
+        data_type=args.data_type
     )
 
     # Load and inspect the created dataset

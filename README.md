@@ -1,3 +1,22 @@
+# ml_vejvejr library
+
+## install library locally
+to install dependencies locally use uv with pip
+Install uv with `curl -LsSf https://astral.sh/uv/install.sh | sh`
+Then do:
+
+```
+uv venv .venv
+source .venv/bin/activate
+uv pip install -r requirements.txt
+```
+
+or run `shell_scripts/create_env.sh`
+Followed by 
+```
+uv pip install -e .
+```
+to test the package locally.
 
 # Implement load_dataset in the dataset.Dataset
 # Run `python train.py {path_to_dataset}`
