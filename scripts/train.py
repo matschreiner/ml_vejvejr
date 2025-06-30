@@ -21,7 +21,8 @@ def plot_losses(model):
         plt.plot(model.losses, label="Train Loss")
         if hasattr(model, "val_losses") and model.val_losses:
             plt.plot(model.val_losses, label="Validation Loss")
-        plt.xlabel("Training Steps")
+        #plt.xlabel("Training Steps")
+        plt.xlabel("Epochs")
         plt.ylabel("MSE Loss")
         plt.title("Time Series Prediction Loss")
         plt.yscale("log")
