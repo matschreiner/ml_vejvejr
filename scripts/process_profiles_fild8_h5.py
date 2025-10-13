@@ -234,6 +234,10 @@ def ensure_datasets(h5f, n_depth):
 def append_hour(h5_path, ts, stations, temps):
     """
     Append one hour worth of data to the HDF5 file.
+    
+    Returns
+    -------
+    bool : True if data was written, False if already existed
     """
     with h5py.File(h5_path, "a") as f:
         ensure_datasets(f, temps.shape[1])
@@ -245,7 +249,7 @@ def append_hour(h5_path, ts, stations, temps):
         ts_unix = ts.timestamp()
         if ts_unix in existing_timestamps:
             print(f"  Timestamp {ts} already exists in {h5_path}, skipping...")
-            return
+            return False
         
         # -------------------------------- station axis --------------------
         new_stations = []
@@ -284,6 +288,8 @@ def append_hour(h5_path, ts, stations, temps):
         
         g["timestamps"][time_idx] = ts_unix
         g["timestamps_iso"][time_idx] = str(ts).encode()
+        
+        return True
 
 def main():
     if len(sys.argv) != 3:
@@ -299,14 +305,19 @@ def main():
         day_tag = ts.strftime("%Y%m%d")
         h5_file = out_dir / f"road_temp_{day_tag}.h5"
 
-        append_hour(h5_file, ts, station_ids, temp_mat)
-        print(f"→  wrote hour {ts:%Y-%m-%d %H:%M} to {h5_file}")
+        was_written = append_hour(h5_file, ts, station_ids, temp_mat)
         
-        # Print some statistics
-        file_size = h5_file.stat().st_size / (1024 * 1024)  # MB
-        print(f"   File size: {file_size:.2f} MB")
-        print(f"   Stations: {len(station_ids)}")
-        print(f"   Temperature matrix shape: {temp_mat.shape}")
+        if was_written:
+            print(f"→  wrote hour {ts:%Y-%m-%d %H:%M} to {h5_file}")
+            
+            # Print some statistics
+            file_size = h5_file.stat().st_size / (1024 * 1024)  # MB
+            print(f"   File size: {file_size:.2f} MB")
+            print(f"   Stations: {len(station_ids)}")
+            print(f"   Temperature matrix shape: {temp_mat.shape}")
+        else:
+            # Data already existed, exit with special code
+            sys.exit(0)
         
     except FileNotFoundError:
         print(f"File {raw_file} not found. Please check the filename and path.")
@@ -316,6 +327,10 @@ def main():
         import traceback
         traceback.print_exc()
         sys.exit(1)
+
+if __name__ == "__main__":
+    main()
+
 
 if __name__ == "__main__":
     main()
