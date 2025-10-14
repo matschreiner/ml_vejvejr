@@ -54,7 +54,7 @@ process_hourly_file () {
 }
 
 YYYY=2022
-for MM in $(seq -w 7 12); do
+for MM in $(seq -w 07 07); do
     TBALL=$DPATH/${YYYY}${MM}/fild8/fild8/fild8_${YYYY}${MM}.tar
 
     if [[ ! -f $TBALL ]]; then
