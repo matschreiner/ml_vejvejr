@@ -19,7 +19,7 @@ uv pip install -e .
 to test the package locally.
 
 # Implement load_dataset in the dataset.Dataset
-# Run `python train.py {path_to_dataset}`
+Run `python train.py {path_to_dataset}`
 
 ### Testing adding real profiles
 The data is in the path `/data/projects/glatmodel/obs/fild8/road_profiles_daily`, where
