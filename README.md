@@ -18,7 +18,6 @@ uv pip install -e .
 ```
 to test the package locally.
 
-# Implement load_dataset in the dataset.Dataset
 Run `python train.py {path_to_dataset}`
 
 ### Testing adding real profiles
@@ -68,3 +67,6 @@ To evaluate model use the script `run_eval.sh`. Note that a checkpoint
 from lightning_logs must be selected.
 An example prediction is below:
 ![Prediction Example](./figs/model_predictions.png)
+
+### Model documentation
+See the ![model documentation here](./doc/MODEL_SUMMARY.md)
